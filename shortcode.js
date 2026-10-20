@@ -65,18 +65,34 @@
   }
 
   // 3. Edit trực tiếp
-  function toolEditDirectly() {
-    fetch(window.location.href)
-      .then(function (r) { return r.text(); })
-      .then(function (html) {
-       var m = html.match(/\\?"detailPost\\?":\{[^{}]*?\\?"id\\?":\\?"?(\d+)/) || html.match(/\\?"postId\\?":(\d+)/) || html.match(/\\?"urlId\\?":(\d+)/);
-        if (m && m[1]) {
-          window.location.href = "https://cms.sforum.vn/s-admin/sforum/news/post/update/" + m[1] + "#primarytab-content";
-        } else {
-          alert("Không tìm thấy ID bài viết trên trang này.");
-        }
+    function toolEditDirectly() {
+    fetch(window.location.href, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.text();
       })
-      .catch(function (e) { alert("Lỗi khi tải trang: " + e); });
+      .then(function (html) {
+        // Ưu tiên detailPost (chắc chắn là bài đang xem). \\? = chấp nhận cả JSON bị escape (\"...\") của Next.js
+        var m = html.match(/\\?"detailPost\\?":\{[^{}]*?\\?"id\\?":\\?"?(\d+)/);
+        var id = m && m[1];
+        var isFallback = false;
+
+        // Dự phòng: postId / urlId có thể khớp nhầm bài liên quan -> hỏi xác nhận
+        if (!id) {
+          var f = html.match(/\\?"postId\\?":(\d+)/) || html.match(/\\?"urlId\\?":(\d+)/);
+          if (f) { id = f[1]; isFallback = true; }
+        }
+
+        if (!id) {
+          alert("Không tìm thấy ID bài viết trên trang này.");
+          return;
+        }
+        if (isFallback && !confirm("Không thấy detailPost, đang dùng ID dự phòng " + id + ". Mở CMS?")) return;
+
+        window.location.href = "https://cms.sforum.vn/s-admin/sforum/news/post/update/" + id + "#primarytab-content";
+      })
+      .catch(function (e) { alert("Lỗi khi tải trang: " + e.message); });
+  }
   }
 
   // 4. Lấy ngày đăng
