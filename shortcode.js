@@ -69,7 +69,7 @@
     fetch(window.location.href)
       .then(function (r) { return r.text(); })
       .then(function (html) {
-        var m = html.match(/"detailPost"\:\{"id"\:(\d+)/) || html.match(/"postId"\:(\d+)/) || html.match(/"urlId"\:(\d+)/);
+                var m = html.match(/\\?"detailPost\\?":\{[^{}]*?\\?"id\\?":\\?"?(\d+)/) || html.match(/\\?"postId\\?":(\d+)/) || html.match(/\\?"urlId\\?":(\d+)/);
         if (m && m[1]) {
           window.location.href = "https://cms.sforum.vn/s-admin/sforum/news/post/update/" + m[1] + "#primarytab-content";
         } else {
